@@ -13,9 +13,10 @@
  * @see system_menu()
  */
 function hhvminfo_menu_alter(array &$items) {
-  if (array_key_exists('admin/reports/status/php', $items)) {
-    $items['admin/reports/status/php']['page callback'] = '_hhvminfo_phpinfo';
-    unset($items['admin/reports/status/php']['file']);
+  $path = 'admin/reports/status/php';
+  if (array_key_exists($path, $items)) {
+    $items[$path]['page callback'] = '_hhvminfo_phpinfo';
+    unset($items[$path]['file']);
   }
 }
 
