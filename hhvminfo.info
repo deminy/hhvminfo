@@ -1,0 +1,8 @@
+name = HHVMinfo
+description = Display phpinfo for HHVM HipHop Virtual Machine.
+package = Administration
+
+dependencies[] = system
+
+core = 7.x
+version = 7.x-1.x

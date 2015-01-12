@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @file
+ * Display phpinfo for HHVM HipHop Virtual Machine.
+ */
+
+/**
+ * Implements hook_menu_alter().
+ *
+ * @param array &$items
+ * @return void
+ * @see system_menu()
+ */
+function hhvminfo_menu_alter(array &$items) {
+  if (array_key_exists('admin/reports/status/php', $items)) {
+    $items['admin/reports/status/php']['page callback'] = '_hhvminfo_phpinfo';
+    unset($items['admin/reports/status/php']['file']);
+  }
+}
+
+/**
+ * @return void
+ */
+function _hhvminfo_phpinfo() {
+  if (php_sapi_name() == 'srv') {
+    include_once __DIR__ . '/hhvminfo.php';
+
+    drupal_exit();
+  } else {
+    system_php();
+  }
+}
