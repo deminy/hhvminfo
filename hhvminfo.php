@@ -24,9 +24,7 @@ function _hhvminfo_print_table(
 
   echo '<table border="0" cellpadding="3">';
 
-  if (empty($headers)) {
-    $headers = array_keys(reset($array));
-  }
+  $headers = $headers ?: array_keys(reset($array));
   if (!empty($headers)) {
     echo '<tr class="h">';
     foreach ($headers as $value) {
@@ -38,7 +36,11 @@ function _hhvminfo_print_table(
   foreach ($array as $key => $value) {
     echo '<tr>';
     if (!is_numeric($key) || !$formatkeys) {
-      echo '<td class="e">', ($formatkeys ? ucwords(str_replace('_', ' ', $key)) : $key), '</td>';
+      echo
+        '<td class="e">',
+        ($formatkeys ? ucwords(str_replace('_', ' ', $key)) : $key),
+        '</td>'
+      ;
     }
     if (is_array($value)) {
       foreach ($value as $column) {
@@ -284,12 +286,28 @@ function _hhvminfo_format_special($value, $formatnumeric) {
 
   if (empty($_GET) || count($_GET) > 4 || isset($_GET['SUMMARY'])) {
     if (($pidfile = ini_get('pid')) || ($pidfile = ini_get('hhvm.pid_file'))) {
-      $uptime = ($pidfile) && ($mtime = @filemtime($pidfile)) ? (new DateTime('@' . $mtime))->diff(new DateTime('NOW'))->format('%a days, %h hours, %i minutes') : '<i>unknown<i>';
-      if (!($inifile = (function_exists('php_ini_loaded_file') ? php_ini_loaded_file() : ''))
+      if (($pidfile) && ($mtime = @filemtime($pidfile))) {
+        $uptime = (new DateTime('@' . $mtime))
+          ->diff(new DateTime('NOW'))
+          ->format('%a days, %h hours, %i minutes')
+        ;
+      }
+      else {
+        $uptime = '<i>unknown<i>';
+      }
+
+      if (function_exists('php_ini_loaded_file')) {
+        $inifile = php_ini_loaded_file();
+      }
+      else {
+        $inifile = '';
+      }
+      if (empty($inifile)
         && ($pid = @file_get_contents($pidfile))
         && ($cmdline = @file_get_contents("/proc/$pid/cmdline"))
       ) {
-        if (preg_match('@-?-c(onfig)?\s*([^ ]+?)($|\s|--)@', $cmdline, $match)) {
+        $pattern = '@-?-c(onfig)?\s*([^ ]+?)($|\s|--)@';
+        if (preg_match($pattern, $cmdline, $match)) {
           $inifile = $match[2];
         }
         else {
@@ -370,7 +388,7 @@ function _hhvminfo_format_special($value, $formatnumeric) {
       $_POST;
       $_REQUEST;
       $_FILES;
-    }    // PHP 5.4+ JIT
+    } // PHP 5.4+ JIT
     $order = array_flip(
       array('_SERVER', '_ENV', '_COOKIE', '_GET', '_POST', '_REQUEST', '_FILES')
     );
@@ -391,6 +409,7 @@ function _hhvminfo_format_special($value, $formatnumeric) {
     foreach ($globals as $key => $ignore) {
       if (!isset($order[$key])) {
         echo '<h2 id="', $key, '">$', $key, '</h2>';
+
         if (empty($GLOBALS[$key])) {
           echo '<hr>';
         }
