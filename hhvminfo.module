@@ -42,3 +42,111 @@ function _hhvminfo_phpinfo() {
     system_php();
   }
 }
+
+/**
+ * Print phpinfo data into in an HTML table.
+ *
+ * @param array $array
+ *   phpinfo data to be printed out into an HTML table.
+ * @param array $headers
+ *   Table headers.
+ * @param bool $formatkeys
+ *   Format keys or not.
+ * @param bool $formatnumeric
+ *   Formatting number values or not.
+ */
+function _hhvminfo_print_table(
+  array $array,
+  $headers = array(),
+  $formatkeys = FALSE,
+  $formatnumeric = FALSE) {
+  if (empty($array)) {
+    return;
+  }
+
+  echo '<table border="0" cellpadding="3">';
+
+  $headers = $headers ?: array_keys(reset($array));
+  if (!empty($headers)) {
+    echo '<tr class="h">';
+    foreach ($headers as $value) {
+      echo '<th>', $value, '</th>';
+    }
+    echo '</tr>';
+  }
+
+  foreach ($array as $key => $value) {
+    echo '<tr>';
+    if (!is_numeric($key) || !$formatkeys) {
+      echo
+        '<td class="e">',
+        ($formatkeys ? ucwords(str_replace('_', ' ', $key)) : $key),
+        '</td>';
+    }
+    if (is_array($value)) {
+      foreach ($value as $column) {
+        echo
+          '<td class="v">',
+          _hhvminfo_format_special($column, $formatnumeric),
+          '</td>';
+      }
+    }
+    else {
+      echo
+        '<td class="v">',
+        _hhvminfo_format_special($value, $formatnumeric),
+        '</td>';
+    }
+    echo '</tr>';
+  }
+
+  echo '</table>';
+}
+
+/**
+ * Format different types of values for displaying in HTML.
+ *
+ * @param mixed $value
+ *   A phpinfo value to be formatted for HTML output.
+ * @param bool $formatnumeric
+ *   Formatting number values or not.
+ * @return
+ *   Returns formatted phpinfo value as a string.
+ */
+function _hhvminfo_format_special($value, $formatnumeric = FALSE) {
+  if (is_array($value)) {
+    $value = '<i>array</i>';
+  }
+  elseif (is_object($value)) {
+    $value = '<i>object</i>';
+  }
+  elseif ($value === TRUE) {
+    $value = '<i>true</i>';
+  }
+  elseif ($value === FALSE) {
+    $value = '<i>false</i>';
+  }
+  elseif ($value === NULL) {
+    $value = '<i>null</i>';
+  }
+  elseif ($value === 0 || $value === 0.0 || $value === '0') {
+    $value = '0';
+  }
+  elseif (empty($value)) {
+    $value = '<i>no value</i>';
+  }
+  elseif (is_string($value) && strlen($value) > 50) {
+    $value = implode('&#8203;', str_split($value, 45));
+  }
+  elseif ($formatnumeric && is_numeric($value)) {
+    if ($value > 1048576) {
+      $value = round($value / 1048576, 1) . 'M';
+    }
+    elseif (is_float($value)) {
+      $value = round($value, 1);
+    }
+  }
+
+  return $value;
+}
+
