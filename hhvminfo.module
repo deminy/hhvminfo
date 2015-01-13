@@ -8,8 +8,6 @@
 /**
  * Implements hook_menu_alter().
  *
- * @param array &$items
- * @return void
  * @see system_menu()
  */
 function hhvminfo_menu_alter(array &$items) {
@@ -21,14 +19,15 @@ function hhvminfo_menu_alter(array &$items) {
 }
 
 /**
- * @return void
+ * Display phpinfo for HHVM, or use phpinfo() directly if not under HHVM.
  */
 function _hhvminfo_phpinfo() {
   if (php_sapi_name() == 'srv') {
     include_once __DIR__ . '/hhvminfo.php';
 
     drupal_exit();
-  } else {
+  }
+  else {
     system_php();
   }
 }

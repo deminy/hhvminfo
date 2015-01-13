@@ -1,17 +1,20 @@
 <?php
+
 /**
- * This code snippet was based on following code.
- *
+ * Credit: this code snippet was originally based on following code:
  * @see https://gist.github.com/ck-on/67ca91f0310a695ceb65
  * @version e1bd3be4d561eb383d7bf377ede458913e555b6a
  */
 
 /**
  * @param array $array
+ *   phpinfo data to be printed out into an HTML table.
  * @param array $headers
+ *   Table headers.
  * @param bool $formatkeys
+ *   Format keys or not.
  * @param bool $formatnumeric
- * @return void
+ *   Formatting number values or not.
  */
 function _hhvminfo_print_table(
   array $array,
@@ -39,24 +42,21 @@ function _hhvminfo_print_table(
       echo
         '<td class="e">',
         ($formatkeys ? ucwords(str_replace('_', ' ', $key)) : $key),
-        '</td>'
-      ;
+        '</td>';
     }
     if (is_array($value)) {
       foreach ($value as $column) {
         echo
           '<td class="v">',
           _hhvminfo_format_special($column, $formatnumeric),
-          '</td>'
-        ;
+          '</td>';
       }
     }
     else {
       echo
         '<td class="v">',
         _hhvminfo_format_special($value, $formatnumeric),
-        '</td>'
-      ;
+        '</td>';
     }
     echo '</tr>';
   }
@@ -66,10 +66,13 @@ function _hhvminfo_print_table(
 
 /**
  * @param mixed $value
+ *   A phpinfo value to be formatted for HTML output.
  * @param boolean $formatnumeric
+ *   Formatting number values or not.
  * @return string
+ *   Returns formatted phpinfo value.
  */
-function _hhvminfo_format_special($value, $formatnumeric) {
+function _hhvminfo_format_special($value, $formatnumeric = FALSE) {
   if (is_array($value)) {
     $value = '<i>array</i>';
   }
@@ -280,147 +283,147 @@ function _hhvminfo_format_special($value, $formatnumeric) {
       href="?GLOBALS">Globals</a>
   </div>
 
-  <?php
+<?php
 
-  $globals = array_keys($GLOBALS);
+$globals = array_keys($GLOBALS);
 
-  if (empty($_GET) || count($_GET) > 4 || isset($_GET['SUMMARY'])) {
-    if (($pidfile = ini_get('pid')) || ($pidfile = ini_get('hhvm.pid_file'))) {
-      if (($pidfile) && ($mtime = @filemtime($pidfile))) {
-        $uptime = (new DateTime('@' . $mtime))
-          ->diff(new DateTime('NOW'))
-          ->format('%a days, %h hours, %i minutes')
-        ;
-      }
-      else {
-        $uptime = '<i>unknown<i>';
-      }
+if (empty($_GET) || count($_GET) > 4 || isset($_GET['SUMMARY'])) {
+  if (($pidfile = ini_get('pid')) || ($pidfile = ini_get('hhvm.pid_file'))) {
+    if (($pidfile) && ($mtime = @filemtime($pidfile))) {
+      $uptime = (new DateTime('@' . $mtime))
+        ->diff(new DateTime('NOW'))
+        ->format('%a days, %h hours, %i minutes')
+      ;
+    }
+    else {
+      $uptime = '<i>unknown<i>';
+    }
 
-      if (function_exists('php_ini_loaded_file')) {
-        $inifile = php_ini_loaded_file();
+    if (function_exists('php_ini_loaded_file')) {
+      $inifile = php_ini_loaded_file();
+    }
+    else {
+      $inifile = '';
+    }
+    if (empty($inifile)
+      && ($pid = @file_get_contents($pidfile))
+      && ($cmdline = @file_get_contents("/proc/$pid/cmdline"))
+    ) {
+      $pattern = '@-?-c(onfig)?\s*([^ ]+?)($|\s|--)@';
+    if (preg_match($pattern, $cmdline, $match)) {
+        $inifile = $match[2];
       }
       else {
         $inifile = '';
       }
-      if (empty($inifile)
-        && ($pid = @file_get_contents($pidfile))
-        && ($cmdline = @file_get_contents("/proc/$pid/cmdline"))
-      ) {
-        $pattern = '@-?-c(onfig)?\s*([^ ]+?)($|\s|--)@';
-        if (preg_match($pattern, $cmdline, $match)) {
-          $inifile = $match[2];
-        }
-        else {
-          $inifile = '';
-        }
+    }
+  }
+  else {
+    $uptime = $inifile = '<i>unknown</i>';
+  }
+
+  $host = function_exists('gethostname') ? @gethostname() : @php_uname('n');
+  _hhvminfo_print_table(
+    array(
+      'Host'                      => $host,
+      'System'                    => php_uname(),
+      'PHP Version'               => phpversion(),
+      'HHVM Version'              => ini_get('hphp.compiler_version'),
+      'HHVM compiler id'          => ini_get('hphp.compiler_id'),
+      'SAPI'                      => php_sapi_name() . ' ' . ini_get(
+          'hhvm.server.type'
+        ),
+      'Loaded Configuration File' => $inifile,
+      'Uptime'                    => $uptime,
+    )
+  );
+}
+
+if (isset($_GET['INI']) && $ini = ini_get_all()) {
+  ksort($ini);
+  echo '<h2 id="ini">ini</h2>';
+  _hhvminfo_print_table(
+    $ini,
+    array('Directive', 'Local Value', 'Master Value', 'Access'),
+    FALSE
+  );
+  echo '<h2>access level legend</h2>';
+  _hhvminfo_print_table(
+    array(
+      'Entry can be set in user scripts, ini_set()' => INI_USER,
+      'Entry can be set in php.ini, .htaccess, httpd.conf' => INI_PERDIR,
+      'Entry can be set in php.ini or httpd.conf' => INI_SYSTEM,
+      '<div style="width:865px">Entry can be set anywhere</div>' => INI_ALL,
+    )
+  );
+}
+
+if (isset($_GET['EXTENSIONS']) && $extensions = get_loaded_extensions(TRUE)) {
+  echo '<h2 id="extensions">extensions</h2>';
+  natcasesort($extensions);
+  _hhvminfo_print_table($extensions, array(), TRUE);
+}
+
+if (isset($_GET['FUNCTIONS']) && $functions = get_defined_functions()) {
+  echo '<h2 id="functions">functions</h2>';
+  natcasesort($functions['internal']);
+  _hhvminfo_print_table($functions['internal'], array(), TRUE);
+}
+
+if (isset($_GET['CONSTANTS']) && $constants = get_defined_constants(TRUE)) {
+  ksort($constants);
+  foreach ($constants as $key => $value) {
+    if (!empty($value)) {
+      ksort($value);
+      echo '<h2 id="constants-', $key, '">Constants (', $key, ')</h2>';
+      _hhvminfo_print_table($value);
+    }
+  }
+}
+
+if (isset($_GET['GLOBALS'])) {
+  if (0) {
+    $_SERVER;
+    $_ENV;
+    $_SESSION;
+    $_COOKIE;
+    $_GET;
+    $_POST;
+    $_REQUEST;
+    $_FILES;
+  } // PHP 5.4+ JIT
+  $order = array_flip(
+    array('_SERVER', '_ENV', '_COOKIE', '_GET', '_POST', '_REQUEST', '_FILES')
+  );
+  foreach ($order as $key => $ignore) {
+    if (isset($GLOBALS[$key])) {
+      echo '<h2 id="', $key, '">$', $key, '</h2>';
+      if (empty($GLOBALS[$key])) {
+        echo '<hr>';
       }
-    }
-    else {
-      $uptime = $inifile = '<i>unknown</i>';
-    }
-
-    $host = function_exists('gethostname') ? @gethostname() : @php_uname('n');
-    _hhvminfo_print_table(
-      array(
-        'Host'                      => $host,
-        'System'                    => php_uname(),
-        'PHP Version'               => phpversion(),
-        'HHVM Version'              => ini_get('hphp.compiler_version'),
-        'HHVM compiler id'          => ini_get('hphp.compiler_id'),
-        'SAPI'                      => php_sapi_name() . ' ' . ini_get(
-            'hhvm.server.type'
-          ),
-        'Loaded Configuration File' => $inifile,
-        'Uptime'                    => $uptime,
-      )
-    );
-  }
-
-  if (isset($_GET['INI']) && $ini = ini_get_all()) {
-    ksort($ini);
-    echo '<h2 id="ini">ini</h2>';
-    _hhvminfo_print_table(
-      $ini,
-      array('Directive', 'Local Value', 'Master Value', 'Access'),
-      FALSE
-    );
-    echo '<h2>access level legend</h2>';
-    _hhvminfo_print_table(
-      array(
-        'Entry can be set in user scripts, ini_set()' => INI_USER,
-        'Entry can be set in php.ini, .htaccess, httpd.conf' => INI_PERDIR,
-        'Entry can be set in php.ini or httpd.conf' => INI_SYSTEM,
-        '<div style="width:865px">Entry can be set anywhere</div>' => INI_ALL,
-      )
-    );
-  }
-
-  if (isset($_GET['EXTENSIONS']) && $extensions = get_loaded_extensions(TRUE)) {
-    echo '<h2 id="extensions">extensions</h2>';
-    natcasesort($extensions);
-    _hhvminfo_print_table($extensions, array(), TRUE);
-  }
-
-  if (isset($_GET['FUNCTIONS']) && $functions = get_defined_functions()) {
-    echo '<h2 id="functions">functions</h2>';
-    natcasesort($functions['internal']);
-    _hhvminfo_print_table($functions['internal'], array(), TRUE);
-  }
-
-  if (isset($_GET['CONSTANTS']) && $constants = get_defined_constants(TRUE)) {
-    ksort($constants);
-    foreach ($constants as $key => $value) {
-      if (!empty($value)) {
-        ksort($value);
-        echo '<h2 id="constants-', $key, '">Constants (', $key, ')</h2>';
-        _hhvminfo_print_table($value);
-      }
-    }
-  }
-
-  if (isset($_GET['GLOBALS'])) {
-    if (0) {
-      $_SERVER;
-      $_ENV;
-      $_SESSION;
-      $_COOKIE;
-      $_GET;
-      $_POST;
-      $_REQUEST;
-      $_FILES;
-    } // PHP 5.4+ JIT
-    $order = array_flip(
-      array('_SERVER', '_ENV', '_COOKIE', '_GET', '_POST', '_REQUEST', '_FILES')
-    );
-    foreach ($order as $key => $ignore) {
-      if (isset($GLOBALS[$key])) {
-        echo '<h2 id="', $key, '">$', $key, '</h2>';
-        if (empty($GLOBALS[$key])) {
-          echo '<hr>';
-        }
-        else {
-          _hhvminfo_print_table($GLOBALS[$key]);
-        }
-      }
-    }
-    natcasesort($globals);
-    $globals = array_flip($globals);
-    unset($globals['GLOBALS']);
-    foreach ($globals as $key => $ignore) {
-      if (!isset($order[$key])) {
-        echo '<h2 id="', $key, '">$', $key, '</h2>';
-
-        if (empty($GLOBALS[$key])) {
-          echo '<hr>';
-        }
-        else {
-          _hhvminfo_print_table($GLOBALS[$key]);
-        }
+      else {
+        _hhvminfo_print_table($GLOBALS[$key]);
       }
     }
   }
+  natcasesort($globals);
+  $globals = array_flip($globals);
+  unset($globals['GLOBALS']);
+  foreach ($globals as $key => $ignore) {
+    if (!isset($order[$key])) {
+      echo '<h2 id="', $key, '">$', $key, '</h2>';
 
-  ?>
+      if (empty($GLOBALS[$key])) {
+        echo '<hr>';
+      }
+      else {
+        _hhvminfo_print_table($GLOBALS[$key]);
+      }
+    }
+  }
+}
+
+?>
 
   <div class="meta">
     <a href="http://hhvm.com/blog">HHVM blog</a> |
