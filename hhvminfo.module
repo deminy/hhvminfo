@@ -11,13 +11,17 @@
 function hhvminfo_theme() {
   return array(
     'hhvminfo_phpinfo' => array(
-      'template' => 'hhvminfo',
+      'template'  => 'hhvminfo',
+      'variables' => array('params' => array()),
     ),
   );
 }
 
 /**
  * Implements hook_menu_alter().
+ *
+ * @param array &$items
+ *   Menu items passed in.
  *
  * @see system_menu()
  */
@@ -34,7 +38,11 @@ function hhvminfo_menu_alter(array &$items) {
  */
 function _hhvminfo_phpinfo() {
   if (php_sapi_name() == 'srv') {
-    print theme('hhvminfo_phpinfo');
+    $params = drupal_get_query_parameters();
+    if (array_key_exists('q', $params)) {
+      unset($params['q']);
+    }
+    print theme('hhvminfo_phpinfo', array('params' => $params));
 
     drupal_exit();
   }
@@ -57,7 +65,7 @@ function _hhvminfo_phpinfo() {
  */
 function _hhvminfo_print_table(
   array $array,
-  $headers = array(),
+  array $headers = array(),
   $formatkeys = FALSE,
   $formatnumeric = FALSE) {
   if (empty($array)) {
@@ -66,7 +74,6 @@ function _hhvminfo_print_table(
 
   echo '<table border="0" cellpadding="3">';
 
-  $headers = $headers ?: array_keys(reset($array));
   if (!empty($headers)) {
     echo '<tr class="h">';
     foreach ($headers as $value) {
@@ -110,6 +117,7 @@ function _hhvminfo_print_table(
  *   A phpinfo value to be formatted for HTML output.
  * @param bool $formatnumeric
  *   Formatting number values or not.
+ *
  * @return
  *   Returns formatted phpinfo value as a string.
  */
@@ -150,3 +158,103 @@ function _hhvminfo_format_special($value, $formatnumeric = FALSE) {
   return $value;
 }
 
+/**
+ * Output HTML content of HHVM phpinfo.
+ *
+ * @param array $params
+ *   List of HTTP GET parameters for HHVM phpinfo.
+ */
+function _hhvminfo_phpinfo_details(array $params) {
+  if (empty($params) || count($params) >= 4 || isset($params['SUMMARY'])) {
+    if (($pidfile = ini_get('pid')) || ($pidfile = ini_get('hhvm.pid_file'))) {
+      if (($pidfile) && ($mtime = @filemtime($pidfile))) {
+        $uptime = new DateTime('@' . $mtime);
+        $uptime = $uptime
+          ->diff(new DateTime('NOW'))
+          ->format('%a days, %h hours, %i minutes');
+      }
+      else {
+        $uptime = '<i>unknown<i>';
+      }
+
+      if (function_exists('php_ini_loaded_file')) {
+        $inifile = php_ini_loaded_file();
+      }
+      else {
+        $inifile = '';
+      }
+      if (empty($inifile)
+        && ($pid = @file_get_contents($pidfile))
+        && ($cmdline = @file_get_contents("/proc/$pid/cmdline"))
+      ) {
+        $pattern = '@-?-c(onfig)?\s*([^ ]+?)($|\s|--)@';
+        if (preg_match($pattern, $cmdline, $match)) {
+          $inifile = $match[2];
+        }
+        else {
+          $inifile = '';
+        }
+      }
+    }
+    else {
+      $uptime = $inifile = '<i>unknown</i>';
+    }
+
+    $host = function_exists('gethostname') ? @gethostname() : @php_uname('n');
+    $sapi = php_sapi_name() . ' ' . ini_get('hhvm.server.type');
+    _hhvminfo_print_table(
+      array(
+        'Host'                      => $host,
+        'System'                    => php_uname(),
+        'PHP Version'               => phpversion(),
+        'HHVM Version'              => ini_get('hphp.compiler_version'),
+        'HHVM compiler id'          => ini_get('hphp.compiler_id'),
+        'SAPI'                      => $sapi,
+        'Loaded Configuration File' => $inifile,
+        'Uptime'                    => $uptime,
+      )
+    );
+  }
+
+  if (isset($params['INI']) && $ini = ini_get_all()) {
+    ksort($ini);
+    echo '<h2 id="ini">ini</h2>';
+    _hhvminfo_print_table(
+      $ini,
+      array('Directive', 'Local Value', 'Master Value', 'Access'),
+      FALSE
+    );
+    echo '<h2>access level legend</h2>';
+    _hhvminfo_print_table(
+      array(
+        'Entry can be set in user scripts, ini_set()' => INI_USER,
+        'Entry can be set in php.ini, .htaccess, httpd.conf' => INI_PERDIR,
+        'Entry can be set in php.ini or httpd.conf' => INI_SYSTEM,
+        '<div style="width:865px">Entry can be set anywhere</div>' => INI_ALL,
+      )
+    );
+  }
+
+  if (isset($params['EXTENSIONS']) && $extensions = get_loaded_extensions(TRUE)) {
+    echo '<h2 id="extensions">extensions</h2>';
+    natcasesort($extensions);
+    _hhvminfo_print_table($extensions, array(), TRUE);
+  }
+
+  if (isset($params['FUNCTIONS']) && $functions = get_defined_functions()) {
+    echo '<h2 id="functions">functions</h2>';
+    natcasesort($functions['internal']);
+    _hhvminfo_print_table($functions['internal'], array(), TRUE);
+  }
+
+  if (isset($params['CONSTANTS']) && $constants = get_defined_constants(TRUE)) {
+    ksort($constants);
+    foreach ($constants as $key => $value) {
+      if (!empty($value)) {
+        ksort($value);
+        echo '<h2 id="constants-', $key, '">Constants (', $key, ')</h2>';
+        _hhvminfo_print_table($value);
+      }
+    }
+  }
+}
