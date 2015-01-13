@@ -76,8 +76,8 @@ function _hhvminfo_print_table(
  *   A phpinfo value to be formatted for HTML output.
  * @param bool $formatnumeric
  *   Formatting number values or not.
- * @return string
- *   Returns formatted phpinfo value.
+ * @return
+ *   Returns formatted phpinfo value as a string.
  */
 function _hhvminfo_format_special($value, $formatnumeric = FALSE) {
   if (is_array($value)) {
