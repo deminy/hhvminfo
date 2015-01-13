@@ -44,6 +44,7 @@ function _hhvminfo_phpinfo() {
     drupal_exit();
   }
   else {
+    module_load_include('inc', 'system', 'system.admin');
     system_php();
   }
 }
