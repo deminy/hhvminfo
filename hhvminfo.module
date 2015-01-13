@@ -6,6 +6,17 @@
  */
 
 /**
+ * Implements hook_theme().
+ */
+function hhvminfo_theme() {
+  return array(
+    'hhvminfo_phpinfo' => array(
+      'template' => 'hhvminfo',
+    ),
+  );
+}
+
+/**
  * Implements hook_menu_alter().
  *
  * @see system_menu()
@@ -23,7 +34,7 @@ function hhvminfo_menu_alter(array &$items) {
  */
 function _hhvminfo_phpinfo() {
   if (php_sapi_name() == 'srv') {
-    include_once __DIR__ . '/hhvminfo.php';
+    print theme('hhvminfo_phpinfo');
 
     drupal_exit();
   }

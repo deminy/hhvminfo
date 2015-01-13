@@ -430,9 +430,7 @@ if (isset($_GET['GLOBALS'])) {
     }
   }
 }
-
 ?>
-
   <div class="meta">
     <a href="http://hhvm.com/blog">HHVM blog</a> |
     <a href="https://github.com/facebook/hhvm/wiki">HHVM wiki</a> |
