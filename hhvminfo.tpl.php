@@ -184,10 +184,7 @@
     <a href="https://github.com/facebook/hhvm/wiki">HHVM wiki</a> |
     <a href="https://github.com/facebook/hhvm/blob/master/hphp/NEWS">HHVM
       changelog</a> |
-    <a href="https://github.com/facebook/hhvm/commits/master">HHVM commits</a> |
-    <a href="http://webchat.freenode.net/?channels=hhvm">#HHVM irc chat</a> |
-    <a href="https://gist.github.com/ck-on/67ca91f0310a695ceb65">HHVMinfo
-      latest</a>
+    <a href="http://webchat.freenode.net/?channels=hhvm">#HHVM irc chat</a>
   </div>
 
 </div>
