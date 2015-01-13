@@ -1,3 +1,10 @@
+<?php
+
+/**
+ * @file
+ * Theme for displaying HHVM phpinfo.
+ */
+?>
 <!DOCTYPE html>
 <html>
 <head>

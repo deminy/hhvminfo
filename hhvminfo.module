@@ -20,9 +20,6 @@ function hhvminfo_theme() {
 /**
  * Implements hook_menu_alter().
  *
- * @param array &$items
- *   Menu items passed in.
- *
  * @see system_menu()
  */
 function hhvminfo_menu_alter(array &$items) {
@@ -118,7 +115,7 @@ function _hhvminfo_print_table(
  * @param bool $formatnumeric
  *   Formatting number values or not.
  *
- * @return
+ * @return string
  *   Returns formatted phpinfo value as a string.
  */
 function _hhvminfo_format_special($value, $formatnumeric = FALSE) {
