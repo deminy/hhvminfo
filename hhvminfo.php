@@ -1,12 +1,17 @@
 <?php
 
 /**
- * Credit: this code snippet was originally based on following code:
+ * An HHVM implementation of PHP function phpinfo().
+ *
+ * This code snippet was originally based on following code.
+ *
  * @see https://gist.github.com/ck-on/67ca91f0310a695ceb65
  * @version e1bd3be4d561eb383d7bf377ede458913e555b6a
  */
 
 /**
+ * Print phpinfo data into in an HTML table.
+ *
  * @param array $array
  *   phpinfo data to be printed out into an HTML table.
  * @param array $headers
@@ -65,9 +70,11 @@ function _hhvminfo_print_table(
 }
 
 /**
+ * Format different types of values for displaying in HTML.
+ *
  * @param mixed $value
  *   A phpinfo value to be formatted for HTML output.
- * @param boolean $formatnumeric
+ * @param bool $formatnumeric
  *   Formatting number values or not.
  * @return string
  *   Returns formatted phpinfo value.
@@ -108,6 +115,8 @@ function _hhvminfo_format_special($value, $formatnumeric = FALSE) {
 
   return $value;
 }
+
+$params = drupal_get_query_parameters();
 ?>
 <!DOCTYPE html>
 <html>
@@ -271,15 +280,15 @@ function _hhvminfo_format_special($value, $formatnumeric = FALSE) {
 
   <div class="buttons">
     <a href="?INI&EXTENSIONS&FUNCTIONS&CONSTANTS&GLOBALS">ALL</a>
-    <a <?php echo isset($_GET['INI']) ? 'class="active"' : '' ?>"
+    <a <?php echo isset($params['INI']) ? 'class="active"' : '' ?>"
     href="?INI">ini</a>
-    <a <?php echo isset($_GET['EXTENSIONS']) ? 'class="active"' : '' ?>
+    <a <?php echo isset($params['EXTENSIONS']) ? 'class="active"' : '' ?>
       href="?EXTENSIONS">Extensions</a>
-    <a <?php echo isset($_GET['FUNCTIONS']) ? 'class="active"' : '' ?>
+    <a <?php echo isset($params['FUNCTIONS']) ? 'class="active"' : '' ?>
       href="?FUNCTIONS">Functions</a>
-    <a <?php echo isset($_GET['CONSTANTS']) ? 'class="active"' : '' ?>
+    <a <?php echo isset($params['CONSTANTS']) ? 'class="active"' : '' ?>
       href="?CONSTANTS">Constants</a>
-    <a <?php echo isset($_GET['GLOBALS']) ? 'class="active"' : '' ?>
+    <a <?php echo isset($params['GLOBALS']) ? 'class="active"' : '' ?>
       href="?GLOBALS">Globals</a>
   </div>
 
@@ -290,10 +299,10 @@ $globals = array_keys($GLOBALS);
 if (empty($_GET) || count($_GET) > 4 || isset($_GET['SUMMARY'])) {
   if (($pidfile = ini_get('pid')) || ($pidfile = ini_get('hhvm.pid_file'))) {
     if (($pidfile) && ($mtime = @filemtime($pidfile))) {
-      $uptime = (new DateTime('@' . $mtime))
+      $uptime = new DateTime('@' . $mtime);
+      $uptime = $uptime
         ->diff(new DateTime('NOW'))
-        ->format('%a days, %h hours, %i minutes')
-      ;
+        ->format('%a days, %h hours, %i minutes');
     }
     else {
       $uptime = '<i>unknown<i>';
@@ -310,7 +319,7 @@ if (empty($_GET) || count($_GET) > 4 || isset($_GET['SUMMARY'])) {
       && ($cmdline = @file_get_contents("/proc/$pid/cmdline"))
     ) {
       $pattern = '@-?-c(onfig)?\s*([^ ]+?)($|\s|--)@';
-    if (preg_match($pattern, $cmdline, $match)) {
+      if (preg_match($pattern, $cmdline, $match)) {
         $inifile = $match[2];
       }
       else {
@@ -323,6 +332,7 @@ if (empty($_GET) || count($_GET) > 4 || isset($_GET['SUMMARY'])) {
   }
 
   $host = function_exists('gethostname') ? @gethostname() : @php_uname('n');
+  $sapi = php_sapi_name() . ' ' . ini_get('hhvm.server.type');
   _hhvminfo_print_table(
     array(
       'Host'                      => $host,
@@ -330,9 +340,7 @@ if (empty($_GET) || count($_GET) > 4 || isset($_GET['SUMMARY'])) {
       'PHP Version'               => phpversion(),
       'HHVM Version'              => ini_get('hphp.compiler_version'),
       'HHVM compiler id'          => ini_get('hphp.compiler_id'),
-      'SAPI'                      => php_sapi_name() . ' ' . ini_get(
-          'hhvm.server.type'
-        ),
+      'SAPI'                      => $sapi,
       'Loaded Configuration File' => $inifile,
       'Uptime'                    => $uptime,
     )
