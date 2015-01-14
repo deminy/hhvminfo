@@ -238,7 +238,8 @@ function _hhvminfo_phpinfo_details(array $params) {
     );
   }
 
-  if (isset($params['EXTENSIONS']) && $extensions = get_loaded_extensions(TRUE)) {
+  if (isset($params['EXTENSIONS'])
+    && $extensions = get_loaded_extensions(TRUE)) {
     echo '<h2 id="extensions">extensions</h2>';
     natcasesort($extensions);
     _hhvminfo_print_table($extensions, array(), TRUE);
