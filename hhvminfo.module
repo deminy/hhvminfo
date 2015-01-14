@@ -61,14 +61,11 @@ function _hhvminfo_phpinfo() {
  *   Table headers.
  * @param bool $formatkeys
  *   Format keys or not.
- * @param bool $formatnumeric
- *   Formatting number values or not.
  */
 function _hhvminfo_print_table(
   array $array,
   array $headers = array(),
-  $formatkeys = FALSE,
-  $formatnumeric = FALSE) {
+  $formatkeys = FALSE) {
   if (empty($array)) {
     return;
   }
@@ -95,14 +92,14 @@ function _hhvminfo_print_table(
       foreach ($value as $column) {
         echo
           '<td class="v">',
-          _hhvminfo_format_special($column, $formatnumeric),
+          _hhvminfo_format_special($column),
           '</td>';
       }
     }
     else {
       echo
         '<td class="v">',
-        _hhvminfo_format_special($value, $formatnumeric),
+        _hhvminfo_format_special($value),
         '</td>';
     }
     echo '</tr>';
@@ -116,13 +113,11 @@ function _hhvminfo_print_table(
  *
  * @param mixed $value
  *   A phpinfo value to be formatted for HTML output.
- * @param bool $formatnumeric
- *   Formatting number values or not.
  *
  * @return string
  *   Returns formatted phpinfo value as a string.
  */
-function _hhvminfo_format_special($value, $formatnumeric = FALSE) {
+function _hhvminfo_format_special($value) {
   if (is_array($value)) {
     $value = '<i>array</i>';
   }
@@ -146,14 +141,6 @@ function _hhvminfo_format_special($value, $formatnumeric = FALSE) {
   }
   elseif (is_string($value) && strlen($value) > 50) {
     $value = implode('&#8203;', str_split($value, 45));
-  }
-  elseif ($formatnumeric && is_numeric($value)) {
-    if ($value > 1048576) {
-      $value = round($value / 1048576, 1) . 'M';
-    }
-    elseif (is_float($value)) {
-      $value = round($value, 1);
-    }
   }
 
   return $value;
