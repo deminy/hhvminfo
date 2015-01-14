@@ -208,41 +208,47 @@ function _hhvminfo_phpinfo_details(array $params) {
 
   if (isset($params['INI']) && $ini = ini_get_all()) {
     ksort($ini);
+
     echo '<h2 id="ini">ini</h2>';
     _hhvminfo_print_table(
       $ini,
       array('Directive', 'Local Value', 'Master Value', 'Access'),
       FALSE
     );
+
     echo '<h2>access level legend</h2>';
     _hhvminfo_print_table(
       array(
-        'Entry can be set in user scripts, ini_set()' => INI_USER,
+        'Entry can be set in user scripts, ini_set()'        => INI_USER,
         'Entry can be set in php.ini, .htaccess, httpd.conf' => INI_PERDIR,
-        'Entry can be set in php.ini or httpd.conf' => INI_SYSTEM,
-        '<div style="width:865px">Entry can be set anywhere</div>' => INI_ALL,
+        'Entry can be set in php.ini or httpd.conf'          => INI_SYSTEM,
+        '<div>Entry can be set anywhere</div>'               => INI_ALL,
       )
     );
   }
 
   if (isset($params['EXTENSIONS'])
     && $extensions = get_loaded_extensions(TRUE)) {
-    echo '<h2 id="extensions">extensions</h2>';
     natcasesort($extensions);
+
+    echo '<h2 id="extensions">extensions</h2>';
     _hhvminfo_print_table($extensions, array(), TRUE);
   }
 
   if (isset($params['FUNCTIONS']) && $functions = get_defined_functions()) {
-    echo '<h2 id="functions">functions</h2>';
     natcasesort($functions['internal']);
+
+    echo '<h2 id="functions">functions</h2>';
     _hhvminfo_print_table($functions['internal'], array(), TRUE);
   }
 
   if (isset($params['CONSTANTS']) && $constants = get_defined_constants(TRUE)) {
     ksort($constants);
+
     foreach ($constants as $key => $value) {
       if (!empty($value)) {
         ksort($value);
+
         echo '<h2 id="constants-', $key, '">Constants (', $key, ')</h2>';
         _hhvminfo_print_table($value);
       }
