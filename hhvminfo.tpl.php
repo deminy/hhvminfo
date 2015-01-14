@@ -179,14 +179,6 @@
 
   <?php _hhvminfo_phpinfo_details($params) ?>
 
-  <div class="meta">
-    <a href="http://hhvm.com/blog">HHVM blog</a> |
-    <a href="https://github.com/facebook/hhvm/wiki">HHVM wiki</a> |
-    <a href="https://github.com/facebook/hhvm/blob/master/hphp/NEWS">HHVM
-      changelog</a> |
-    <a href="http://webchat.freenode.net/?channels=hhvm">#HHVM irc chat</a>
-  </div>
-
 </div>
 </body>
 </html>
