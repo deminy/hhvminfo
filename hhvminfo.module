@@ -39,7 +39,7 @@ function _hhvminfo_phpinfo() {
       drupal_get_query_parameters(),
       array_fill_keys(
         array('INI', 'EXTENSIONS', 'FUNCTIONS', 'CONSTANTS'),
-        null
+        NULL
       )
     );
     print theme('hhvminfo_phpinfo', array('params' => $params));
@@ -186,10 +186,10 @@ function _hhvminfo_phpinfo_details(array $params) {
       }
 
       if (empty($inifile)) {
-        $pid = is_readable($pidfile) ? file_get_contents($pidfile) : null;
+        $pid = is_readable($pidfile) ? file_get_contents($pidfile) : NULL;
         if (!empty($pid)) {
           $cmdfile = "/proc/{$pid}/cmdline";
-          $cmdline = is_readable($cmdfile) ? file_get_contents($cmdfile) : null;
+          $cmdline = is_readable($cmdfile) ? file_get_contents($cmdfile) : NULL;
           if (!empty($cmdline)) {
             $pattern = '@-?-c(onfig)?\s*([^ ]+?)($|\s|--)@';
             if (preg_match($pattern, $cmdline, $match)) {
