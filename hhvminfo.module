@@ -35,10 +35,13 @@ function hhvminfo_menu_alter(array &$items) {
  */
 function _hhvminfo_phpinfo() {
   if (php_sapi_name() == 'srv') {
-    $params = drupal_get_query_parameters();
-    if (array_key_exists('q', $params)) {
-      unset($params['q']);
-    }
+    $params = array_intersect_key(
+      drupal_get_query_parameters(),
+      array_fill_keys(
+        array('INI', 'EXTENSIONS', 'FUNCTIONS', 'CONSTANTS'),
+        null
+      )
+    );
     print theme('hhvminfo_phpinfo', array('params' => $params));
 
     drupal_exit();
@@ -165,7 +168,7 @@ function _hhvminfo_format_special($value, $formatnumeric = FALSE) {
 function _hhvminfo_phpinfo_details(array $params) {
   if (empty($params) || count($params) >= 4 || isset($params['SUMMARY'])) {
     if (($pidfile = ini_get('pid')) || ($pidfile = ini_get('hhvm.pid_file'))) {
-      if (($pidfile) && ($mtime = @filemtime($pidfile))) {
+      if ($pidfile && is_readable($pidfile) && ($mtime = filemtime($pidfile))) {
         $uptime = new DateTime('@' . $mtime);
         $uptime = $uptime
           ->diff(new DateTime('NOW'))
@@ -181,16 +184,18 @@ function _hhvminfo_phpinfo_details(array $params) {
       else {
         $inifile = '';
       }
-      if (empty($inifile)
-        && ($pid = @file_get_contents($pidfile))
-        && ($cmdline = @file_get_contents("/proc/$pid/cmdline"))
-      ) {
-        $pattern = '@-?-c(onfig)?\s*([^ ]+?)($|\s|--)@';
-        if (preg_match($pattern, $cmdline, $match)) {
-          $inifile = $match[2];
-        }
-        else {
-          $inifile = '';
+
+      if (empty($inifile)) {
+        $pid = is_readable($pidfile) ? file_get_contents($pidfile) : null;
+        if (!empty($pid)) {
+          $cmdfile = "/proc/{$pid}/cmdline";
+          $cmdline = is_readable($cmdfile) ? file_get_contents($cmdfile) : null;
+          if (!empty($cmdline)) {
+            $pattern = '@-?-c(onfig)?\s*([^ ]+?)($|\s|--)@';
+            if (preg_match($pattern, $cmdline, $match)) {
+              $inifile = $match[2];
+            }
+          }
         }
       }
     }
@@ -198,7 +203,7 @@ function _hhvminfo_phpinfo_details(array $params) {
       $uptime = $inifile = '<i>unknown</i>';
     }
 
-    $host = function_exists('gethostname') ? @gethostname() : @php_uname('n');
+    $host = function_exists('gethostname') ? gethostname() : php_uname('n');
     $sapi = php_sapi_name() . ' ' . ini_get('hhvm.server.type');
     _hhvminfo_print_table(
       array(
