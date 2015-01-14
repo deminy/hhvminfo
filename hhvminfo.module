@@ -38,7 +38,7 @@ function _hhvminfo_phpinfo() {
     $params = array_intersect_key(
       drupal_get_query_parameters(),
       array_fill_keys(
-        array('INI', 'EXTENSIONS', 'FUNCTIONS', 'CONSTANTS'),
+        array('INI', 'EXTENSIONS', 'FUNCTIONS', 'CONSTANTS', 'GLOBALS'),
         NULL
       )
     );
@@ -153,7 +153,7 @@ function _hhvminfo_format_special($value) {
  *   List of HTTP GET parameters for HHVM phpinfo.
  */
 function _hhvminfo_phpinfo_details(array $params) {
-  if (empty($params) || count($params) >= 4 || isset($params['SUMMARY'])) {
+  if (empty($params) || count($params) >= 5 || isset($params['SUMMARY'])) {
     if (($pidfile = ini_get('pid')) || ($pidfile = ini_get('hhvm.pid_file'))) {
       if ($pidfile && is_readable($pidfile) && ($mtime = filemtime($pidfile))) {
         $uptime = new DateTime('@' . $mtime);
@@ -251,6 +251,45 @@ function _hhvminfo_phpinfo_details(array $params) {
 
         echo '<h2 id="constants-', $key, '">Constants (', $key, ')</h2>';
         _hhvminfo_print_table($value);
+      }
+    }
+  }
+
+  if (isset($_GET['GLOBALS'])) {
+    if (0) {
+      // PHP 5.4+ JIT
+      $_SERVER;
+      $_ENV;
+      $_SESSION;
+      $_COOKIE;
+      $_GET;
+      $_POST;
+      $_REQUEST;
+      $_FILES;
+    }
+
+    $order = array_flip(
+      array(
+        '_SERVER',
+        '_ENV',
+        '_COOKIE',
+        '_GET',
+        '_POST',
+        '_REQUEST',
+        '_FILES',
+      )
+    );
+
+    echo '<div><b>NOTE: $GLOBALS and $_SESSION not listed here.</b></div>';
+    foreach ($order as $key => $ignore) {
+      if (isset($GLOBALS[$key])) {
+        echo '<h2 id="', $key, '">$', $key, '</h2>';
+        if (empty($GLOBALS[$key])) {
+          echo '<hr>';
+        }
+        else {
+          _hhvminfo_print_table($GLOBALS[$key]);
+        }
       }
     }
   }

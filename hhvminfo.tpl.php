@@ -166,7 +166,7 @@
   <h1><a href="?">HHVMinfo</a></h1>
 
   <div class="buttons">
-    <a href="?INI&EXTENSIONS&FUNCTIONS&CONSTANTS">ALL</a>
+    <a href="?INI&EXTENSIONS&FUNCTIONS&CONSTANTS&GLOBALS">ALL</a>
     <a <?php echo isset($params['INI']) ? 'class="active"' : '' ?>"
     href="?INI">ini</a>
     <a <?php echo isset($params['EXTENSIONS']) ? 'class="active"' : '' ?>
@@ -175,6 +175,8 @@
       href="?FUNCTIONS">Functions</a>
     <a <?php echo isset($params['CONSTANTS']) ? 'class="active"' : '' ?>
       href="?CONSTANTS">Constants</a>
+    <a <?php echo isset($params['GLOBALS']) ? 'class="active"' : '' ?>
+      href="?GLOBALS">Globals</a>
   </div>
 
   <?php _hhvminfo_phpinfo_details($params) ?>
