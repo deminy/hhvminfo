@@ -257,7 +257,7 @@ function _hhvminfo_phpinfo_details(array $params) {
 
   if (isset($_GET['GLOBALS'])) {
     if (0) {
-      // PHP 5.4+ JIT
+      // PHP 5.4+ JIT.
       $_SERVER;
       $_ENV;
       $_SESSION;
